@@ -41,7 +41,9 @@ jobs:
 
       - name: Update Helm chart version
         shell: bash
-        run: sed -i 's/0\.0\.0/${{ env.VERSION }}/g' helm/ts-activity/Chart.yaml
+        run: |
+          v="$(echo '${{ env.VERSION }}' | cut -d 'v' -f2)"
+          sed -i "s/0\.0\.0/$v/g" helm/ts-activity/Chart.yaml
 
       - name: Build and push Helm chart
         uses: goodsmileduck/helm-push-action@ec9f29cbf16a4773438b3ea98790aa5b5ca3e749
