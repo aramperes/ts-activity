@@ -5,8 +5,19 @@
 image:
   repository: aramperes/ts-activity
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is latest.
+  # Overrides the image tag whose default is the chart version.
   tag: ""
+
+config:
+  # Discord username displayed in webhook messages.
+  # Defaults to 'Jeff'
+  discordUsername: ""
+  # Address to plain ServerQuery. Usually <ts_host>:10011
+  serverQueryAddr: ""
+  # Secret containing 'username' and 'password' for ServerQuery.
+  serverQuerySecret: ""
+  # Secret containing 'discord' with the Webhook URL.
+  webhookSecret: ""
 
 imagePullSecrets: []
 nameOverride: ""
