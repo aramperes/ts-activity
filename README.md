@@ -14,7 +14,10 @@ This program is configured using environment variables:
 - `TS_QUERY_ADDR`: Address to the TeamSpeak ServerQuery port. Example: `127.0.0.1:10011`
 - `TS_QUERY_USER`: The username you selected for ServerQuery in the setup
 - `TS_QUERY_PASS`: The password TeamSpeak generated for ServerQuery in the setup
+- `TS_QUERY_SERVER_ID`: Virtual server ID to monitor. Defaults to `1`
 - `TS_DISCORD_WEBHOOK`: Webhook URL for Discord. You can create this from the channel "Integrations" page
+- `TS_DISCORD_AVATAR`: Optional URL for Discord bot avatar
+- `TS_DISCORD_USERNAME`: Optional nickname for Discord bot
 
 ## Run it
 [![docker hub](https://img.shields.io/docker/v/aramperes/ts-activity?color=%232496ed&label=docker%20hub&logo=docker&logoColor=fff&sort=semver)](https://hub.docker.com/r/aramperes/ts-activity)

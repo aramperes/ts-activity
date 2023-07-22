@@ -32,8 +32,16 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            {{- with .Values.config.discordUsername }}
             - name: TS_DISCORD_USERNAME
-              value: "{{ .Values.config.discordUsername | default "Jeff" }}"
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.discordAvatar }}
+            - name: TS_DISCORD_AVATAR
+              value: {{ . | quote }}
+            {{- end }}
+            - name: TS_QUERY_SERVER_ID
+              value: {{ .Values.config.serverQueryId | quote }}
             - name: TS_QUERY_ADDR
               value: "{{ .Values.config.serverQueryAddr | required "must provide serverQueryAddr" }}"
             - name: TS_QUERY_USER

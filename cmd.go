@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -10,26 +11,83 @@ import (
 	"github.com/multiplay/go-ts3"
 )
 
+// App holds the configuration
+type App struct {
+	discordURL       string
+	discordUsername  string
+	discordAvatarURL *string
+	tsQueryAddr      string
+	tsQueryUser      string
+	tsQueryPass      string
+	tsQueryServerID  int
+}
+
+func appFromEnv() (*App, error) {
+	discordURL := os.Getenv("TS_DISCORD_WEBHOOK")
+	if discordURL == "" {
+		return nil, errors.New("must configure: TS_DISCORD_WEBHOOK")
+	}
+	discordUsername := os.Getenv("TS_DISCORD_USERNAME")
+	if discordUsername == "" {
+		discordUsername = "TeamSpeak"
+	}
+
+	var discordAvatarURL *string = nil
+	if val, ok := os.LookupEnv("TS_DISCORD_AVATAR"); ok {
+		discordAvatarURL = &val
+	}
+
+	tsQueryAddr := os.Getenv("TS_QUERY_ADDR")
+	if tsQueryAddr == "" {
+		return nil, errors.New("must configure: TS_QUERY_ADDR")
+	}
+	tsQueryUser := os.Getenv("TS_QUERY_USER")
+	if tsQueryUser == "" {
+		return nil, errors.New("must configure: TS_QUERY_USER")
+	}
+	tsQueryPass := os.Getenv("TS_QUERY_PASS")
+	if tsQueryPass == "" {
+		return nil, errors.New("must configure: TS_QUERY_PASS")
+	}
+	tsQueryServerID := 1
+	if val, ok := os.LookupEnv("TS_QUERY_SERVER_ID"); ok {
+		val, err := strconv.Atoi(val)
+		if err == nil {
+			tsQueryServerID = val
+		} else {
+			return nil, errors.New("invalid TS_QUERY_SERVER_ID, must be int")
+		}
+	}
+
+	return &App{
+		discordURL:       discordURL,
+		discordUsername:  discordUsername,
+		discordAvatarURL: discordAvatarURL,
+		tsQueryAddr:      tsQueryAddr,
+		tsQueryUser:      tsQueryUser,
+		tsQueryPass:      tsQueryPass,
+		tsQueryServerID:  tsQueryServerID,
+	}, nil
+}
+
 func main() {
-	discord := os.Getenv("TS_DISCORD_WEBHOOK")
-	if discord == "" {
-		log.Fatal("Must configure: TS_DISCORD_WEBHOOK")
+	app, err := appFromEnv()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Connect and login
-	c, err := ts3.NewClient(os.Getenv("TS_QUERY_ADDR"))
+	c, err := ts3.NewClient(app.tsQueryAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer c.Close()
 
-	user := os.Getenv("TS_QUERY_USER")
-	pass := os.Getenv("TS_QUERY_PASS")
-	if err := c.Login(user, pass); err != nil {
+	if err := c.Login(app.tsQueryUser, app.tsQueryPass); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := c.Use(1); err != nil {
+	if err := c.Use(app.tsQueryServerID); err != nil {
 		log.Fatal(err)
 	}
 
@@ -66,7 +124,6 @@ func main() {
 
 	for {
 		event := <-notifs
-		log.Println("=>", event)
 
 		if event.Type == "cliententerview" {
 			if event.Data["client_type"] != "0" {
@@ -89,7 +146,7 @@ func main() {
 			clientMap[clientID] = clientNick
 
 			if !previous {
-				clientConnected(discord, clientNick)
+				app.clientConnected(clientNick)
 			}
 		} else if event.Type == "clientleftview" {
 			clientID, ok := event.Data["clid"]
@@ -105,41 +162,29 @@ func main() {
 			}
 
 			delete(clientMap, clientID)
-			clientDisconnected(discord, clientNick)
+			app.clientDisconnected(clientNick)
 		}
 	}
 }
 
-func clientConnected(discord string, nick string) {
-	bot := os.Getenv("TS_DISCORD_USERNAME")
-	if bot == "" {
-		bot = "Jeff"
-	}
-
-	content := fmt.Sprintf("Client connected: %s", nick)
+func (app *App) sendWebhook(content string) {
 	message := discordwebhook.Message{
-		Username: &bot,
-		Content:  &content,
+		Username:  &app.discordUsername,
+		Content:   &content,
+		AvatarUrl: app.discordAvatarURL,
 	}
 
-	if err := discordwebhook.SendMessage(discord, message); err != nil {
+	if err := discordwebhook.SendMessage(app.discordURL, message); err != nil {
 		log.Println("Failed to log Discord message:", err)
 	}
 }
 
-func clientDisconnected(discord string, nick string) {
-	bot := os.Getenv("TS_DISCORD_USERNAME")
-	if bot == "" {
-		bot = "Jeff"
-	}
+func (app *App) clientConnected(nick string) {
+	content := fmt.Sprintf("Client connected: %s", nick)
+	app.sendWebhook(content)
+}
 
+func (app *App) clientDisconnected(nick string) {
 	content := fmt.Sprintf("Client disconnected: %s", nick)
-	message := discordwebhook.Message{
-		Username: &bot,
-		Content:  &content,
-	}
-
-	if err := discordwebhook.SendMessage(discord, message); err != nil {
-		log.Println("Failed to log Discord message:", err)
-	}
+	app.sendWebhook(content)
 }
