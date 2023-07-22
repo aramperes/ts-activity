@@ -32,3 +32,22 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Get the release version from the tag
+        if: env.VERSION == ''
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "version is: ${{ env.VERSION }}"
+
+      - name: Update Helm chart version
+        shell: bash
+        run: sed -i 's/0\.0\.0/${{ env.VERSION }}/g' helm/ts-activity/Chart.yaml
+
+      - name: Build and push Helm chart
+        uses: goodsmileduck/helm-push-action@ec9f29cbf16a4773438b3ea98790aa5b5ca3e749
+        env:
+          SOURCE_DIR: './helm'
+          CHART_FOLDER: 'ts-activity'
+          CHARTMUSEUM_URL: 'https://charts.momoperes.ca'
+          CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
+          CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
