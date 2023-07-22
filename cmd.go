@@ -73,7 +73,7 @@ func main() {
 				continue
 			}
 
-			clientId, ok := event.Data["clid"]
+			clientID, ok := event.Data["clid"]
 			if !ok {
 				log.Println("User has no client id", event.Data)
 				continue
@@ -81,36 +81,36 @@ func main() {
 
 			clientNick, ok := event.Data["client_nickname"]
 			if !ok {
-				log.Println("User has no nickname:", clientId)
+				log.Println("User has no nickname:", clientID)
 				continue
 			}
 
-			_, previous := clientMap[clientId]
-			clientMap[clientId] = clientNick
+			_, previous := clientMap[clientID]
+			clientMap[clientID] = clientNick
 
 			if !previous {
-				ClientConnected(discord, clientNick)
+				clientConnected(discord, clientNick)
 			}
 		} else if event.Type == "clientleftview" {
-			clientId, ok := event.Data["clid"]
+			clientID, ok := event.Data["clid"]
 			if !ok {
 				log.Println("User has no client id", event.Data)
 				continue
 			}
 
-			clientNick, ok := clientMap[clientId]
+			clientNick, ok := clientMap[clientID]
 			if !ok {
-				log.Println("Unknown user left:", clientId)
+				log.Println("Unknown user left:", clientID)
 				continue
 			}
 
-			delete(clientMap, clientId)
-			ClientDisconnected(discord, clientNick)
+			delete(clientMap, clientID)
+			clientDisconnected(discord, clientNick)
 		}
 	}
 }
 
-func ClientConnected(discord string, nick string) {
+func clientConnected(discord string, nick string) {
 	bot := os.Getenv("TS_DISCORD_USERNAME")
 	if bot == "" {
 		bot = "Jeff"
@@ -127,7 +127,7 @@ func ClientConnected(discord string, nick string) {
 	}
 }
 
-func ClientDisconnected(discord string, nick string) {
+func clientDisconnected(discord string, nick string) {
 	bot := os.Getenv("TS_DISCORD_USERNAME")
 	if bot == "" {
 		bot = "Jeff"

@@ -46,6 +46,6 @@ helm repo update
 helm upgrade --install ts-activity momoperes/ts-activity \
   --set config.serverQueryAddr=teamspeak:10011 \
   --set config.discordUsername=Jeff \
-  --set serverQuerySecret=ts-activity \
-  --set webhookSecret=ts-activity
+  --set config.serverQuerySecret=ts-activity \
+  --set config.webhookSecret=ts-activity
 ```
