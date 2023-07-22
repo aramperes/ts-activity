@@ -50,7 +50,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	clientMap := make(map[int]string)
+	clientMap := make(map[string]string)
 
 	log.Println("Online clients:")
 	for _, client := range cl {
@@ -58,7 +58,7 @@ func main() {
 			continue
 		}
 		log.Println("-", client)
-		clientMap[client.ID] = client.Nickname
+		clientMap[strconv.Itoa(client.ID)] = client.Nickname
 	}
 
 	// Listen for client updates
@@ -73,9 +73,9 @@ func main() {
 				continue
 			}
 
-			clientId, err := strconv.Atoi(event.Data["clid"])
-			if err != nil {
-				log.Println("Failed to get client ID:", err)
+			clientId, ok := event.Data["clid"]
+			if !ok {
+				log.Println("User has no client id", event.Data)
 				continue
 			}
 
@@ -92,9 +92,9 @@ func main() {
 				ClientConnected(discord, clientNick)
 			}
 		} else if event.Type == "clientleftview" {
-			clientId, err := strconv.Atoi(event.Data["clid"])
-			if err != nil {
-				log.Println("Failed to get client ID:", err)
+			clientId, ok := event.Data["clid"]
+			if !ok {
+				log.Println("User has no client id", event.Data)
 				continue
 			}
 
