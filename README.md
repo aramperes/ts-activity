@@ -43,9 +43,6 @@ docker run --rm --name ts-activity \
 There is also a Helm chart. You can create a `Secret` containing `username`, `password`, and `discord`, and then:
 
 ```sh
-helm repo add momoperes https://charts.momoperes.ca
-helm repo update
-
 helm upgrade --install ts-activity momoperes/ts-activity \
   --set config.serverQueryAddr=teamspeak:10011 \
   --set config.discordUsername=Jeff \
